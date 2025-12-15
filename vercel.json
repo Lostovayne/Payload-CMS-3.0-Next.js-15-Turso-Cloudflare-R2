@@ -4,12 +4,12 @@
   "framework": "nextjs",
   "functions": {
     "app/**/*.tsx": {
-      "memory": 3008,
-      "maxDuration": 30
+      "memory": 1024,
+      "maxDuration": 10
     },
     "app/**/*.ts": {
-      "memory": 3008,
-      "maxDuration": 30
+      "memory": 1024,
+      "maxDuration": 10
     }
   },
   "build": {
