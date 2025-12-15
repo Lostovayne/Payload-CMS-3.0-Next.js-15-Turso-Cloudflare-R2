@@ -7,6 +7,33 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin Publicar]
 
+### 🔧 Arreglado
+
+- **ESLint circular dependency error** - Migrado de `.eslintrc.json` a `eslint.config.mjs` (ESLint 9 flat config)
+- **Validación de variables de entorno** - Agregada validación estricta en `payload.config.ts` con mensajes descriptivos
+- **Variables no utilizadas** - Corregido en `my-route/route.ts` con prefijo underscore
+- **Archivo generado en lint** - Excluido `importMap.js` de ESLint
+- **Cache path validation error** - Reemplazado `cache: 'pnpm'` con configuración explícita de caché en workflows
+
+### 🚀 Cambiado
+
+- **Docker publishing policy** - Solo publica imágenes a GHCR desde rama `main` (producción)
+- **Docker workflow** - PRs y otras ramas solo construyen para validar, no publican
+- **Dependabot config** - Mejorada agrupación de paquetes Payload para evitar desajustes de versiones
+- **Auto-merge workflow** - Detecta y permite actualizaciones de Payload (incluso major) para mantener sincronización
+
+### ✨ Agregado
+
+- Script `sync-env-to-vercel.sh` para sincronizar variables de entorno a Vercel automáticamente
+- Dependencias: `typescript-eslint`, `@eslint/js`, `@eslint/eslintrc`
+- Documentación mejorada sobre manejo de variables de entorno en Vercel
+- Explicación de política de publicación Docker en documentación
+
+### 🗑️ Removido
+
+- `.eslintrc.json` (reemplazado por `eslint.config.mjs`)
+- `.eslintignore` (ahora usa `ignores` en config)
+
 ### Por Agregar
 
 - Sistema de comentarios

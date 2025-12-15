@@ -535,14 +535,52 @@ Aumenta memoria en el workflow:
 
 ### ❌ pnpm install falla
 
-**Verifica versión:**
+**Solución:**
 
 ```yaml
-- name: Setup pnpm
-  uses: pnpm/action-setup@v4
-  with:
-    version: 10 # Debe coincidir con tu versión local
+name: Setup pnpm
+uses: pnpm/action-setup@v4
+with:
+  version: 10
 ```
+
+### ❌ Cache path validation error
+
+**Error:**
+
+```
+Error: Path Validation Error: Path(s) specified in the action for caching do(es) not exist
+```
+
+**Causa:** El caché automático de `setup-node` con `cache: 'pnpm'` puede fallar si el directorio del store de pnpm no existe o está en una ubicación no estándar.
+
+**Solución:** Usar configuración explícita de caché:
+
+```yaml
+- name: Setup Node.js
+  uses: actions/setup-node@v4
+  with:
+    node-version: '20'
+    # NO usar: cache: 'pnpm'
+
+- name: Get pnpm store directory
+  shell: bash
+  run: |
+    echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+- name: Setup pnpm cache
+  uses: actions/cache@v4
+  with:
+    path: ${{ env.STORE_PATH }}
+    key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+    restore-keys: |
+      ${{ runner.os }}-pnpm-store-
+
+- name: Install dependencies
+  run: pnpm install --frozen-lockfile
+```
+
+Este proyecto ya usa esta configuración en todos los workflows.
 
 ### ❌ Múltiples workflows ejecutándose en paralelo
 

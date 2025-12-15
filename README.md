@@ -61,11 +61,11 @@ Plantilla completa de Payload CMS 3.0 con Next.js 15, base de datos Turso (SQLit
 - ✅ **📦 Storage en la Nube** - Archivos en Cloudflare R2 (compatible S3)
 - ✅ **🗄️ Base de Datos Serverless** - Turso con edge locations globales
 - ✅ **🧪 Testing Completo** - Vitest (integración) + Playwright (E2E)
-- ✅ **🐳 Docker Ready** - Multi-stage optimizado + GHCR
+- ✅ **🐳 Docker Ready** - Multi-stage optimizado + GHCR (producción)
 - ✅ **📚 Documentación Completa** - Guías paso a paso en carpeta `/docs`
 - ✅ **🔧 Type-Safe** - TypeScript en todo el stack
 - ✅ **🤖 CI/CD Integrado** - GitHub Actions + Dependabot + Auto-format
-- ✅ **📦 Auto-Deploy** - Imagen Docker publicada automáticamente
+- ✅ **📦 Auto-Deploy** - Imagen Docker publicada automáticamente desde `main`
 
 ## 📦 Requisitos Previos
 
@@ -383,7 +383,7 @@ mi-proyecto-2025/
 │   ├── workflows/                # Workflows de CI/CD
 │   │   ├── ci.yml               # CI/CD pipeline
 │   │   ├── format.yml           # Auto-format con Prettier
-│   │   ├── docker-publish.yml   # Build y push a GHCR
+│   │   ├── docker-publish.yml   # Build y push a GHCR (solo main)
 │   │   └── dependabot-automerge.yml
 │   └── dependabot.yml           # Configuración de Dependabot
 │
