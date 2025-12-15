@@ -160,10 +160,17 @@ docker image prune -a
 
 ### Pull de GHCR
 
+**Política de Publicación:**
+
+- ✅ **main**: Construye y publica a GHCR (producción)
+- 🔧 **PRs**: Solo construye para validar (NO publica)
+- ⚠️ **develop**: NO ejecuta el workflow de Docker
+
 Cuando haces push a `main`, GitHub Actions automáticamente:
 
 1. Construye la imagen Docker
 2. La publica en GitHub Container Registry (GHCR)
+3. Ejecuta escaneo de seguridad con Trivy
 
 ```bash
 # Pull de la imagen publicada
@@ -196,14 +203,15 @@ docker login ghcr.io -u tu-usuario
 
 GitHub Actions genera automáticamente estos tags:
 
-| Tag           | Descripción              | Ejemplo                         |
-| ------------- | ------------------------ | ------------------------------- |
-| `latest`      | Última versión de `main` | `ghcr.io/user/repo:latest`      |
-| `main`        | Branch main              | `ghcr.io/user/repo:main`        |
-| `develop`     | Branch develop           | `ghcr.io/user/repo:develop`     |
-| `v1.2.3`      | Version tag              | `ghcr.io/user/repo:v1.2.3`      |
-| `v1.2`        | Major.minor              | `ghcr.io/user/repo:v1.2`        |
-| `main-abc123` | SHA commit               | `ghcr.io/user/repo:main-abc123` |
+| Tag           | Descripción              | Ejemplo                         | Branch   |
+| ------------- | ------------------------ | ------------------------------- | -------- |
+| `latest`      | Última versión de `main` | `ghcr.io/user/repo:latest`      | **main** |
+| `main`        | Branch main              | `ghcr.io/user/repo:main`        | **main** |
+| `v1.2.3`      | Version tag              | `ghcr.io/user/repo:v1.2.3`      | **main** |
+| `v1.2`        | Major.minor              | `ghcr.io/user/repo:v1.2`        | **main** |
+| `main-abc123` | SHA commit               | `ghcr.io/user/repo:main-abc123` | **main** |
+
+**Nota:** Solo las imágenes de `main` (producción) se publican a GHCR. Otras ramas solo construyen la imagen para validación.
 
 ---
 

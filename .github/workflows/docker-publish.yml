@@ -1,31 +1,36 @@
 # ===================================
 # Docker Build & Publish to GHCR
 # GitHub Container Registry
+#
+# POLÍTICA DE PUBLICACIÓN:
+# - main: Publica imagen a GHCR (producción)
+# - PRs: Solo build para validar (NO publica)
+# - develop: NO ejecuta este workflow
 # ===================================
 
 name: Docker Build & Publish
 
 on:
-  # Trigger en push a main/develop y tags
+  # Trigger SOLO en push a main (producción) y tags
   push:
     branches:
       - main
-      - develop
     tags:
       - 'v*.*.*'
-    # Solo si cambian archivos relevantes
+    # Solo si cambian archivos relevantes para Docker
     paths:
       - 'src/**'
       - 'Dockerfile'
       - 'package.json'
       - 'pnpm-lock.yaml'
+      - 'next.config.ts'
+      - '.dockerignore'
       - '.github/workflows/docker-publish.yml'
 
-  # Trigger en PRs para testing (no publica)
+  # Trigger en PRs a main para testing (solo build, no publica)
   pull_request:
     branches:
       - main
-      - develop
 
   # Permitir ejecución manual
   workflow_dispatch:
@@ -57,7 +62,8 @@ env:
 
 jobs:
   # ===================================
-  # Job 1: Build y Test de la Imagen
+  # Job 1: Build y Push de la Imagen
+  # Solo publica desde main (producción)
   # ===================================
   build-and-push:
     name: Build & Push Docker Image
@@ -77,9 +83,9 @@ jobs:
             image=moby/buildkit:latest
             network=host
 
-      # Login a GitHub Container Registry
+      # Login a GitHub Container Registry (solo para main)
       - name: Log in to GitHub Container Registry
-        if: github.event_name != 'pull_request'
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
@@ -111,8 +117,8 @@ jobs:
           file: ./Dockerfile
           # Platforms (puedes agregar más)
           platforms: linux/amd64
-          # Solo push si no es PR y está habilitado
-          push: ${{ github.event_name != 'pull_request' && (github.event.inputs.push_image != 'false') }}
+          # Solo push si es main (producción)
+          push: ${{ github.ref == 'refs/heads/main' && github.event_name == 'push' && (github.event.inputs.push_image != 'false') }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           # Cache layers para builds más rápidos
@@ -152,11 +158,27 @@ jobs:
           # Limpiar
           docker stop test-container || true
 
-      # Generar summary
-      - name: Generate summary
-        if: github.event_name != 'pull_request'
+      # Summary para PRs (solo build, no publica)
+      - name: Generate PR summary
+        if: github.event_name == 'pull_request'
         run: |
-          echo "### 🐳 Docker Image Published" >> $GITHUB_STEP_SUMMARY
+          echo "### 🐳 Docker Image Build Test" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Status:** ✅ Image built successfully" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch:** \`${{ github.head_ref }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "⚠️ **Note:** Image was NOT pushed to registry (PR only builds for testing)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "To publish this image, merge to \`main\` branch." >> $GITHUB_STEP_SUMMARY
+
+      # Generar summary (solo para publicaciones exitosas en main)
+      - name: Generate summary
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: |
+          echo "### 🐳 Docker Image Published to Production" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch:** \`main\` (Production)" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Registry:** \`${{ env.REGISTRY }}\`" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
@@ -188,13 +210,13 @@ jobs:
           echo '```' >> $GITHUB_STEP_SUMMARY
 
   # ===================================
-  # Job 2: Security Scan (opcional)
+  # Job 2: Security Scan (solo producción)
   # ===================================
   security-scan:
     name: Security Scan
     runs-on: ubuntu-latest
     needs: build-and-push
-    if: github.event_name != 'pull_request'
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     timeout-minutes: 10
 
     steps:
